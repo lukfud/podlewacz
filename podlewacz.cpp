@@ -6,7 +6,8 @@ Copyright (C) by lukfud and yellow rubber duck
 
 #include "podlewacz.h"
 #include <supla/log_wrapper.h>
-#include "supla/events.h"
+#include <supla/events.h>
+#include <supla/network/network.h>
 
 using namespace Supla;
 using namespace Sensor;
@@ -26,8 +27,8 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
   strncpy(apiUrl, apiUrlValue, len);
 }
 
-  void onInit() override {
-    sslClinet = Supla::Network::Instance()->createClient();
+  void onInit() {
+    sslClient = Supla::Network::Instance()->createClient();
   }
 
   void Podlewacz::setUrlValue(const char *apiUrlValue) {
