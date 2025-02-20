@@ -13,13 +13,11 @@ using namespace Supla;
 using namespace Sensor;
 
 Podlewacz::Podlewacz(const char *apiUrlValue) :
-      buf{},
-      retryCounter(0),
-      dataFetchInProgress(false),
-      connectionTimeoutMs(0) 
-{
-  refreshRateSec = 6*60*60; // refresh every 6h
+    buf{},
+    retryCounter(0),
+    dataFetchInProgress(false), connectionTimeoutMs(0) {
 
+  refreshRateSec = 6*60*60; // refresh every 6h
   int len = strlen(apiUrlValue);
   if (len > APIURL_MAX_LENGTH) {
     len = APIURL_MAX_LENGTH;
@@ -27,7 +25,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
   strncpy(apiUrl, apiUrlValue, len);
 }
 
-  void onInit() {
+  void Podlewacz::onInit() {
     sslClient = Supla::Network::Instance()->createClient();
   }
 
