@@ -56,41 +56,45 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
         dataFetchInProgress = false;
       }
       if (sslClient->available()) {
-      SUPLA_LOG_DEBUG("# podlewa.cz - reading data: %d",
+        SUPLA_LOG_DEBUG("# podlewa.cz - reading data: %d",
                                                        sslClient->available());
       }
+      strBuffer = "";
       while (sslClient->available()) {
-        //strBuffer = sslClient->readStringUntil('\n');
         char c = sslClient->read();
-        if (c == '\n') break;
-        strBuffer += c;
-	    if (strBuffer.startsWith("HTTP")) {
-          sscanf(strBuffer.c_str(), "HTTP/%*d.%*d %d", &httpStatusCode);
+        Serial.print(c);
+        if (c == '\r') {
+          continue;
         }
-        if (httpStatusCode != 200) {
-          SUPLA_LOG_DEBUG("# podlewa.cz - request status code: %d, "
+        if (c == '\n') {
+          SUPLA_LOG_DEBUG("# strBuffer: %s (%d)", strBuffer.c_str(), strBuffer.length());
+          if (strBuffer.startsWith("HTTP")) {
+            sscanf(strBuffer.c_str(), "HTTP/%*d.%*d %d", &httpStatusCode);
+          }
+          if (httpStatusCode != 200) {
+            SUPLA_LOG_DEBUG("# podlewa.cz - request status code: %d, "
                                         "sprinklers unlocked", httpStatusCode);
-          state = 0;
-          setActionValue(2);
-          sslClient->stop();
+            state = 0;
+            setActionValue(2);
+            sslClient->stop();
+            break;
+          }
+          strBuffer = "";
+        } else if (httpStatusCode == 200 && strBuffer.length() == 1) {
+          SUPLA_LOG_DEBUG("# strBuffer: %s (%d)", strBuffer.c_str(), strBuffer.length());
+          if ((strBuffer == "0") || (strBuffer == "1")) {
+            SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %s", strBuffer);
+            state = !strBuffer.toInt();
+            setActionValue(state);
+          } else {
+            SUPLA_LOG_DEBUG(
+                          "# podlewa.cz - unknown error, sprinklers unlocked");
+            state = 0;
+            setActionValue(state);
+          }
           break;
         } else {
-          if (strBuffer.length() == 1) {
-            //strBuffer = sslClient->readStringUntil('\n');
-            char c = sslClient->read();
-            if (c == '\n') break;
-            strBuffer += c;
-            if ((strBuffer == "0") || (strBuffer == "1")) {
-              SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %s", strBuffer);
-              state = !strBuffer.toInt();
-              setActionValue(state);
-            } else {
-              SUPLA_LOG_DEBUG(
-                          "# podlewa.cz - unknown error, sprinklers unlocked");
-              state = 0;
-              setActionValue(state);
-            }
-          }
+          strBuffer += c;
         }
       }
       if (!sslClient->connected()) {
@@ -235,6 +239,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
         "-----END CERTIFICATE-----\n";
         sslClient->setCACert(root_ca);
         //sslClient->setHandshakeTimeout(120);
+		sslClient->setSSLEnabled(true);
 #endif
         //SUPLA_LOG_DEBUG("# podlewa.cz - connecting ...");
 #ifdef ARDUINO_ARCH_ESP8266
@@ -248,17 +253,29 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           dataFetchInProgress = true;
           connectionTimeoutMs = lastServerReadTime;
           SUPLA_LOG_DEBUG("# podlewa.cz - succesful connect");
-          char buf[200];
-          strcpy(buf, "GET /status/");
-          strcat(buf, apiUrl);
+          //char buf[200];
+          //strcpy(buf, "GET /status/");
+          //strcat(buf, apiUrl);
           //strcat(buf, "/");
-          Serial.print(F("# podlewa.cz - query: ")); //poprawić
-          Serial.println(buf);
-          strcat(buf, " HTTP/1.1");
-          sslClient->println(buf);
-          sslClient->println("Host: podlewa.cz");
-          sslClient->println("Connection: close");
-          sslClient->println();
+          //Serial.print(F("# podlewa.cz - query: ")); //poprawić
+          //Serial.println(buf);
+          SUPLA_LOG_DEBUG("# podlewa.cz - api url: %s", apiUrl);
+          //strcat(buf, " HTTP/1.1");
+          //sslClient->println(buf);
+          //sslClient->println("Host: podlewa.cz");
+          //sslClient->println("Connection: close");
+          //sslClient->println();
+          int bytesSent = sslClient->print("GET /status/");
+          SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
+          bytesSent = sslClient->print(apiUrl);
+          SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
+          bytesSent = sslClient->print(" HTTP/1.1\r\n");
+          SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
+          sslClient->print("Host: podlewa.cz\r\n");
+          sslClient->print("User-Agent: ESP32Client/1.0\r\n");
+          sslClient->print("Accept: */*\r\n");
+          sslClient->print("Connection: close\r\n");
+          sslClient->print("\r\n");
         } else {  // if connection wasn't successful, try few times
           SUPLA_LOG_DEBUG("# failed to connect to podlewa.cz api, "
                                                 "return code: %d", returnCode);
