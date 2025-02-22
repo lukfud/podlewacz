@@ -43,6 +43,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
 
   void Podlewacz::iterateAlways() {
     VirtualBinary::iterateAlways();
+    SUPLA_LOG_DEBUG("# VirtualBinary Iterate #");
     if (dataFetchInProgress) {
       if (millis() - connectionTimeoutMs > 30000) {
         SUPLA_LOG_DEBUG("# podlewa.cz - connection timeout, "
@@ -61,7 +62,6 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
       }
       strBuffer = "";
       bool headersEnded = false;
-      char lastChar = 0;
       while (sslClient->available()) {
         char c = sslClient->read();
         Serial.print(c);
@@ -94,17 +94,20 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
             SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %s", strBuffer);
             state = !strBuffer.toInt();
             setActionValue(state);
+            SUPLA_LOG_DEBUG("# setState #");
           } else {
             SUPLA_LOG_DEBUG(
                           "# podlewa.cz - unknown error, sprinklers unlocked");
             state = 0;
             setActionValue(state);
           }
+          sslClient->stop();
+          break;
         }
-        break;
       }
       if (!sslClient->connected()) {
         sslClient->stop();
+        SUPLA_LOG_DEBUG("### STOP ###");
       }
     }
   }
