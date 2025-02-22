@@ -31,7 +31,9 @@ class Podlewacz : public VirtualBinary {
  protected:
   //WiFiClientSecure sslClient;
   Supla::Client *sslClient = nullptr;
-  String strBuffer;
+  //String strBuffer;
+  char strBuffer[1024];
+  int strBufferIndex = 0;
   uint8_t retryCounter;
   uint16_t httpStatusCode = 0;
   int _actionValue;
@@ -39,7 +41,7 @@ class Podlewacz : public VirtualBinary {
   uint32_t connectionTimeoutMs;
   uint32_t lastServerReadTime;
   uint32_t refreshRateSec;
-  char buf[1024];
+  //char buf[1024];
   char apiUrl[APIURL_MAX_LENGTH] = {};
 
 };

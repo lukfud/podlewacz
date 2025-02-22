@@ -13,7 +13,7 @@ using namespace Supla;
 using namespace Sensor;
 
 Podlewacz::Podlewacz(const char *apiUrlValue) :
-    buf{},
+    /*buf{},*/
     retryCounter(0),
     _actionValue(42),
     dataFetchInProgress(false), connectionTimeoutMs(0) {
@@ -60,7 +60,9 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
         SUPLA_LOG_DEBUG("# podlewa.cz - reading data: %d",
                                                        sslClient->available());
       }
-      strBuffer = "";
+      //strBuffer = "";
+      memset(strBuffer, 0, sizeof(strBuffer));
+      strBufferIndex = 0;
       bool headersEnded = false;
       while (sslClient->available()) {
         char c = sslClient->read();
@@ -72,8 +74,9 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
             headersEnded = true;
             continue;
           }
-          if (strBuffer.startsWith("HTTP")) {
-            sscanf(strBuffer.c_str(), "HTTP/%*d.%*d %d", &httpStatusCode);
+          //if (strBuffer.startsWith("HTTP")) {
+          if (strncmp(strBuffer, "HTTP", 4) == 0) {
+            sscanf(strBuffer/*.c_str()*/, "HTTP/%*d.%*d %d", &httpStatusCode);
           }
           if (httpStatusCode != 200) {
             SUPLA_LOG_DEBUG("# podlewa.cz - request status code: %d, "
@@ -83,15 +86,21 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
             sslClient->stop();
             break;
           }
-          strBuffer = "";
+          //strBuffer = "";
+          memset(strBuffer, 0, sizeof(strBuffer));
+          strBufferIndex = 0;
         } else {
-          strBuffer += c;
+          //strBuffer += c;
+          strBuffer[strBufferIndex++] = c;
         }
         if (headersEnded && isDigit(c)) {
-          if ((strBuffer == "0") || (strBuffer == "1")) {
-            SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %s", strBuffer);
-            state = !strBuffer.toInt() != 0;
-            SUPLA_LOG_DEBUG("1: state: %d", state);
+          //if ((strBuffer == "0") || (strBuffer == "1")) {
+          if (strBufferIndex == 1 &&
+                                (strBuffer[0] == '0' || strBuffer[0] == '1')) {
+            SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %c", strBuffer);
+            //state = !strBuffer.toInt() != 0;
+            state = !(strBuffer[0] == '0');
+            SUPLA_LOG_DEBUG("-> state: %d", state);
             setActionValue(state);
           } else {
             SUPLA_LOG_DEBUG(
