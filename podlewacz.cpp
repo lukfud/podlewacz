@@ -15,7 +15,7 @@ using namespace Sensor;
 Podlewacz::Podlewacz(const char *apiUrlValue) :
     /*buf{},*/
     retryCounter(0),
-    _actionValue(42),
+    _actionValue(-1),
     dataFetchInProgress(false), connectionTimeoutMs(0) {
 
   refreshRateSec = 6*60*60; // refresh every 6h
@@ -100,17 +100,18 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           //if ((strBuffer == "0") || (strBuffer == "1")) {
           if (strBufferIndex == 1 &&
                                 (strBuffer[0] == '0' || strBuffer[0] == '1')) {
-            SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %c", strBuffer);
+            SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %c",
+                                                                 strBuffer[0]);
             //state = !strBuffer.toInt() != 0;
-            state = !(strBuffer[0] == '0');
-            SUPLA_LOG_DEBUG("-> state: %d", state);
-            setActionValue(state);
+            state = (strBuffer[0] == '0');
+            SUPLA_LOG_DEBUG("-> state: %d", (int)state);
+            setActionValue((int)state);
           } else {
             SUPLA_LOG_DEBUG(
                           "# podlewa.cz - unknown error, sprinklers unlocked");
-            state = 0;
-            SUPLA_LOG_DEBUG("2: state: %d", state);
-            setActionValue(state);
+            state = false;
+            SUPLA_LOG_DEBUG("2: state: %d", (int)state);
+            setActionValue((int)state);
           }
           sslClient->stop();
           break;
@@ -123,11 +124,9 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
   }
 
   void Podlewacz::setActionValue(int value) {
-    //SUPLA_LOG_DEBUG("## value: %d, actionValue: %d", value, _actionValue);
-    Serial.print("-- _actionValue: ");
+    Serial.print("--> _actionValue: ");
     Serial.println(_actionValue);
     if (value != _actionValue) {
-      _actionValue = value;
 	  switch(value) {
         default:
         case 0:
@@ -142,6 +141,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           runAction(Supla::ON_ERROR);
           break;
       }
+      _actionValue = value;
       SUPLA_LOG_DEBUG("### value: %d, actionValue: %d", value, _actionValue);
     }
   }
@@ -227,7 +227,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           SUPLA_LOG_DEBUG("# failed to connect to podlewa.cz api, "
                                                 "return code: %d", returnCode);
           retryCounter++;
-          state = 0;
+          state = false;
           setActionValue(2);
         }
       }
