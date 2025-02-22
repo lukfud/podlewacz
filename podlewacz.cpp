@@ -70,7 +70,8 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           continue;
         }
         if (c == '\n') {
-          if (strBuffer.length() == 0) {
+          //if (strBuffer.length() == 0) {
+          if (strBufferIndex == 0) {
             headersEnded = true;
             continue;
           }
@@ -91,7 +92,9 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           strBufferIndex = 0;
         } else {
           //strBuffer += c;
-          strBuffer[strBufferIndex++] = c;
+          if (strBufferIndex < sizeof(strBuffer) - 1) {
+            strBuffer[strBufferIndex++] = c;
+          }
         }
         if (headersEnded && isDigit(c)) {
           //if ((strBuffer == "0") || (strBuffer == "1")) {
