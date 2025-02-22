@@ -77,7 +77,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           if (httpStatusCode != 200) {
             SUPLA_LOG_DEBUG("# podlewa.cz - request status code: %d, "
                                         "sprinklers unlocked", httpStatusCode);
-            state = 0;
+            state = false;
             setActionValue(2);
             sslClient->stop();
             break;
@@ -113,7 +113,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
     }
   }
 
-  void Podlewacz::setActionValue(int newActionValue) {
+  void Podlewacz::setActionValue(uint8_t newActionValue) {
     SUPLA_LOG_DEBUG("before: value [%d], _actionValue [%d]", newActionValue, _actionValue);
     if (newActionValue != _actionValue) {
       switch(newActionValue) {

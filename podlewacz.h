@@ -21,7 +21,7 @@ class Podlewacz : public VirtualBinary {
  public:
   Podlewacz(const char *apiUrlValue);
   void setServerRefreshRate(uint16_t min);
-  void setActionValue(int value);
+  void setActionValue(uint8_t newActionValue);
   void setUrlValue(const char *apiUrlValue);
   void onInit();
   void iterateAlways();
@@ -29,16 +29,17 @@ class Podlewacz : public VirtualBinary {
 
  protected:
   Supla::Client *sslClient = nullptr;
-  char strBuffer[1024];
-  int strBufferIndex = 0;
+
   uint8_t retryCounter;
   uint16_t httpStatusCode = 0;
-  uint8_t _actionValue = 100;
+  uint8_t _actionValue = 10;
   bool dataFetchInProgress;
   uint32_t connectionTimeoutMs;
   uint32_t lastServerReadTime;
   uint32_t refreshRateSec;
   char apiUrl[APIURL_MAX_LENGTH] = {};
+  char strBuffer[1024] = {};
+  int strBufferIndex = 0;
 
 };
 };  // namespace Sensor
