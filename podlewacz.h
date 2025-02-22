@@ -8,7 +8,6 @@ Copyright (C) by lukfud and yellow rubber duck
 #ifndef ARDUINO_ARCH_AVR
 // Arduino Mega can't establish https connection, so it can't be supported
 
-//#include <WiFiClientSecure.h>
 #include <supla/network/client.h>
 #include <supla/action_handler.h>
 #include <supla/sensor/virtual_binary.h>
@@ -21,7 +20,7 @@ namespace Sensor {
 class Podlewacz : public VirtualBinary {
  public:
   Podlewacz(const char *apiUrlValue);
-  void setServerRefreshRate(unsigned int min);
+  void setServerRefreshRate(uint16_t min);
   void setActionValue(int value);
   void setUrlValue(const char *apiUrlValue);
   void onInit();
@@ -29,19 +28,16 @@ class Podlewacz : public VirtualBinary {
   bool iterateConnected();
 
  protected:
-  //WiFiClientSecure sslClient;
   Supla::Client *sslClient = nullptr;
-  //String strBuffer;
   char strBuffer[1024];
   int strBufferIndex = 0;
   uint8_t retryCounter;
   uint16_t httpStatusCode = 0;
-  int _actionValue;
+  uint8_t _actionValue = 100;
   bool dataFetchInProgress;
   uint32_t connectionTimeoutMs;
   uint32_t lastServerReadTime;
   uint32_t refreshRateSec;
-  //char buf[1024];
   char apiUrl[APIURL_MAX_LENGTH] = {};
 
 };
