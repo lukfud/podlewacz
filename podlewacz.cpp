@@ -15,6 +15,7 @@ using namespace Sensor;
 Podlewacz::Podlewacz(const char *apiUrlValue) :
     buf{},
     retryCounter(0),
+    _actionValue(42),
     dataFetchInProgress(false), connectionTimeoutMs(0) {
 
   refreshRateSec = 6*60*60; // refresh every 6h
@@ -43,7 +44,6 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
 
   void Podlewacz::iterateAlways() {
     VirtualBinary::iterateAlways();
-    //SUPLA_LOG_DEBUG("---- actionValue: %d", actionValue);
     if (dataFetchInProgress) {
       if (millis() - connectionTimeoutMs > 30000) {
         SUPLA_LOG_DEBUG("# podlewa.cz - connection timeout, "
@@ -90,7 +90,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
         if (headersEnded && isDigit(c)) {
           if ((strBuffer == "0") || (strBuffer == "1")) {
             SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %s", strBuffer);
-            state = !strBuffer.toInt();
+            state = !strBuffer.toInt() != 0;
             SUPLA_LOG_DEBUG("1: state: %d", state);
             setActionValue(state);
           } else {
@@ -111,9 +111,12 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
   }
 
   void Podlewacz::setActionValue(int value) {
-    SUPLA_LOG_DEBUG("## value: %d, actionValue: %d", value, actionValue);
-    if (value != actionValue) {
-      switch(value) {
+    //SUPLA_LOG_DEBUG("## value: %d, actionValue: %d", value, _actionValue);
+    Serial.print("-- _actionValue: ");
+    Serial.println(_actionValue);
+    if (value != _actionValue) {
+      _actionValue = value;
+	  switch(value) {
         default:
         case 0:
           runAction(Supla::ON_EVENT_2);
@@ -127,8 +130,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           runAction(Supla::ON_ERROR);
           break;
       }
-      actionValue = value;
-      SUPLA_LOG_DEBUG("### value: %d, actionValue: %d", value, actionValue);
+      SUPLA_LOG_DEBUG("### value: %d, actionValue: %d", value, _actionValue);
     }
   }
 
@@ -172,7 +174,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
         "-----END CERTIFICATE-----\n";
         sslClient->setCACert(root_ca);
         //sslClient->setHandshakeTimeout(120);
-		sslClient->setSSLEnabled(true);
+        sslClient->setSSLEnabled(true);
 #endif
         //SUPLA_LOG_DEBUG("# podlewa.cz - connecting ...");
 #ifdef ARDUINO_ARCH_ESP8266
@@ -198,11 +200,11 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           //sslClient->println("Host: podlewa.cz");
           //sslClient->println("Connection: close");
           //sslClient->println();
-          int bytesSent = sslClient->print("GET /status/");
+          sslClient->print("GET /status/");
           //SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
-          bytesSent = sslClient->print(apiUrl);
+          sslClient->print(apiUrl);
           //SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
-          bytesSent = sslClient->print(" HTTP/1.1\r\n");
+          sslClient->print(" HTTP/1.1\r\n");
           //SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
           sslClient->print("Host: podlewa.cz\r\n");
           sslClient->print("User-Agent: ESP32Client/1.0\r\n");
