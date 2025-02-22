@@ -34,7 +34,7 @@ class Podlewacz : public VirtualBinary {
   String strBuffer;
   uint8_t retryCounter = 0;
   uint16_t httpStatusCode = 0;
-  uint8_t actionValue = -1;
+  int actionValue = -1;
   bool dataFetchInProgress;
   uint32_t connectionTimeoutMs;
   uint32_t lastServerReadTime;

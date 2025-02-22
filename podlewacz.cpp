@@ -43,7 +43,7 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
 
   void Podlewacz::iterateAlways() {
     VirtualBinary::iterateAlways();
-    SUPLA_LOG_DEBUG("# VirtualBinary Iterate #");
+    //SUPLA_LOG_DEBUG("---- actionValue: %d", actionValue);
     if (dataFetchInProgress) {
       if (millis() - connectionTimeoutMs > 30000) {
         SUPLA_LOG_DEBUG("# podlewa.cz - connection timeout, "
@@ -64,7 +64,6 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
       bool headersEnded = false;
       while (sslClient->available()) {
         char c = sslClient->read();
-        Serial.print(c);
         if (c == '\r') {
           continue;
         }
@@ -73,7 +72,6 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
             headersEnded = true;
             continue;
           }
-          SUPLA_LOG_DEBUG("# strBuffer: %s (%d)", strBuffer.c_str(), strBuffer.length());
           if (strBuffer.startsWith("HTTP")) {
             sscanf(strBuffer.c_str(), "HTTP/%*d.%*d %d", &httpStatusCode);
           }
@@ -93,12 +91,13 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           if ((strBuffer == "0") || (strBuffer == "1")) {
             SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %s", strBuffer);
             state = !strBuffer.toInt();
+            SUPLA_LOG_DEBUG("1: state: %d", state);
             setActionValue(state);
-            SUPLA_LOG_DEBUG("# setState #");
           } else {
             SUPLA_LOG_DEBUG(
                           "# podlewa.cz - unknown error, sprinklers unlocked");
             state = 0;
+            SUPLA_LOG_DEBUG("2: state: %d", state);
             setActionValue(state);
           }
           sslClient->stop();
@@ -107,26 +106,29 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
       }
       if (!sslClient->connected()) {
         sslClient->stop();
-        SUPLA_LOG_DEBUG("### STOP ###");
       }
     }
   }
 
   void Podlewacz::setActionValue(int value) {
+    SUPLA_LOG_DEBUG("## value: %d, actionValue: %d", value, actionValue);
     if (value != actionValue) {
       switch(value) {
         default:
-	    case 0:
+        case 0:
           runAction(Supla::ON_EVENT_2);
+          SUPLA_LOG_DEBUG("# EVENT 2");
           break;
         case 1:
           runAction(Supla::ON_EVENT_3);
+          SUPLA_LOG_DEBUG("# EVENT 3");
           break;
         case 2:
           runAction(Supla::ON_ERROR);
           break;
       }
       actionValue = value;
+      SUPLA_LOG_DEBUG("### value: %d, actionValue: %d", value, actionValue);
     }
   }
 
@@ -197,11 +199,11 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
           //sslClient->println("Connection: close");
           //sslClient->println();
           int bytesSent = sslClient->print("GET /status/");
-          SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
+          //SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
           bytesSent = sslClient->print(apiUrl);
-          SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
+          //SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
           bytesSent = sslClient->print(" HTTP/1.1\r\n");
-          SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
+          //SUPLA_LOG_DEBUG("# Sent %d bytes", bytesSent);
           sslClient->print("Host: podlewa.cz\r\n");
           sslClient->print("User-Agent: ESP32Client/1.0\r\n");
           sslClient->print("Accept: */*\r\n");
