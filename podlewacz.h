@@ -2,8 +2,7 @@
 Copyright (C) by lukfud and yellow rubber duck
 */
 
-#ifndef SRC_SUPLA_SENSOR_PODLEWACZ_H_
-#define SRC_SUPLA_SENSOR_PODLEWACZ_H_
+#pragma once
 
 #ifndef ARDUINO_ARCH_AVR
 // Arduino Mega can't establish https connection, so it can't be supported
@@ -42,8 +41,8 @@ class Podlewacz : public VirtualBinary {
   int strBufferIndex = 0;
 
 };
+
 };  // namespace Sensor
 };  // namespace Supla
 
 #endif
-#endif  // SRC_SUPLA_SENSOR_PODLEWACZ_H_

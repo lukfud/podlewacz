@@ -95,7 +95,6 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
             SUPLA_LOG_DEBUG("# podlewa.cz - sprinklers status: %c",
                                                                  strBuffer[0]);
             state = (strBuffer[0] == '0');
-            SUPLA_LOG_DEBUG("binary state [%d]", (int)state);
             setActionValue((int)state);
           } else {
             SUPLA_LOG_DEBUG(
@@ -114,25 +113,21 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
   }
 
   void Podlewacz::setActionValue(uint8_t newActionValue) {
-    SUPLA_LOG_DEBUG("before: value [%d], _actionValue [%d]", newActionValue, _actionValue);
-    if (newActionValue != _actionValue) {
+    //if (newActionValue != _actionValue) {
       switch(newActionValue) {
         default:
         case 0:
           runAction(Supla::ON_EVENT_2);
-          SUPLA_LOG_DEBUG("# EVENT 2");
           break;
         case 1:
           runAction(Supla::ON_EVENT_3);
-          SUPLA_LOG_DEBUG("# EVENT 3");
           break;
         case 2:
           runAction(Supla::ON_ERROR);
           break;
       }
-      _actionValue = newActionValue;
-      SUPLA_LOG_DEBUG("after: value [%d], _actionValue [%d]", newActionValue, _actionValue);
-    }
+      //_actionValue = newActionValue;
+    //}
   }
 
   bool Podlewacz::iterateConnected() {
@@ -179,8 +174,8 @@ Podlewacz::Podlewacz(const char *apiUrlValue) :
 #endif
 #ifdef ARDUINO_ARCH_ESP8266
         sslClient->stop();
-        sslClient->setBufferSizes(2048, 512);
-        sslClient->setInsecure();
+        //sslClient->setBufferSizes(2048, 512);
+        //sslClient->setInsecure();
 #endif
         int returnCode = sslClient->connect("podlewa.cz", 443);
         if (returnCode) {
